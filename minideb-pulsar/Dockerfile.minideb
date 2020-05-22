@@ -1,0 +1,15 @@
+FROM bitnami/minideb:buster as builder
+ENV PULSAR_VERSION=2.4.1
+
+RUN apt-get update && apt-get install -y apt-utils wget curl openssh-client tar git autoconf make build-essential libtool util-linux ca-certificates
+
+RUN wget -qO /apache-pulsar-client.deb https://archive.apache.org/dist/pulsar/pulsar-${PULSAR_VERSION}/DEB/apache-pulsar-client.deb
+RUN wget -qO /apache-pulsar-client-dev.deb https://archive.apache.org/dist/pulsar/pulsar-${PULSAR_VERSION}/DEB/apache-pulsar-client-dev.deb
+
+FROM bitnami/minideb:buster
+
+COPY --from=builder /apache-pulsar-client.deb .
+COPY --from=builder /apache-pulsar-client-dev.deb .
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+
+RUN dpkg -i /apache-pulsar-client.deb /apache-pulsar-client-dev.deb

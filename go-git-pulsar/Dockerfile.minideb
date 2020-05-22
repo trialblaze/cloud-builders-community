@@ -1,0 +1,35 @@
+FROM bitnami/minideb:buster
+ENV PULSAR_VERSION=2.4.1
+
+RUN apt-get update && apt-get install -y apt-utils wget curl openssh-client tar git autoconf make build-essential libtool util-linux ca-certificates && \
+	curl -O https://storage.googleapis.com/golang/go1.14.linux-amd64.tar.gz && \
+	tar xvf go1.14.linux-amd64.tar.gz && \
+	rm -rf go1.14.linux-amd64.tar.gz && \
+	chown -R root:root ./go && \
+	mv go /usr/local
+
+RUN wget -qO /apache-pulsar-client.deb https://archive.apache.org/dist/pulsar/pulsar-${PULSAR_VERSION}/DEB/apache-pulsar-client.deb
+RUN dpkg -i /apache-pulsar-client.deb
+RUN wget -qO /apache-pulsar-client-dev.deb https://archive.apache.org/dist/pulsar/pulsar-${PULSAR_VERSION}/DEB/apache-pulsar-client-dev.deb
+RUN dpkg -i /apache-pulsar-client-dev.deb
+
+# We blank out the GOPATH because the base image sets it, and
+# if the user of this build step does *not* set it, we want to
+# explore other options for workspace derivation.
+#ENV GOPATH=
+
+RUN mkdir /builder
+
+COPY go_workspace.go prepare_workspace.inc /builder/
+COPY protoc-gen-go /usr/local/bin/
+COPY semantic-release /usr/local/bin/
+
+COPY go.ash /builder/bin/
+
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/usr/local/go_path
+ENV PATH=$GOROOT/bin:$GOPATH/bin:/builder/bin:$PATH
+
+RUN go build -o /builder/go_workspace /builder/go_workspace.go
+
+ENTRYPOINT ["go.ash"]

@@ -1,0 +1,15 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Build the alpine version.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'Dockerfile.minideb', '--tag=gcr.io/$PROJECT_ID/minideb-pulsar:buster', '.']
+
+# The alpine version is our default.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', 'gcr.io/$PROJECT_ID/minideb-pulsar:buster', 'gcr.io/$PROJECT_ID/minideb-pulsar']
+
+images:
+- 'gcr.io/$PROJECT_ID/minideb-pulsar'
+- 'gcr.io/$PROJECT_ID/minideb-pulsar:buster'
