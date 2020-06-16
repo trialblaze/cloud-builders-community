@@ -13,6 +13,8 @@ RUN mkdir /builder
 COPY go_workspace.go prepare_workspace.inc /builder/
 COPY protoc-gen-go /usr/local/bin/
 COPY semantic-release /usr/local/bin/
+COPY go-acc /usr/local/bin/
+COPY gosec /usr/local/bin/
 
 COPY go.ash /builder/bin/
 ENV PATH=/builder/bin:$PATH
